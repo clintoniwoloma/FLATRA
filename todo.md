@@ -22,18 +22,24 @@
 - [x] Live crypto ticker powered by CoinGecko (mock data)
 
 ## Wallet & Transactions
-- [ ] Wallet page showing fiat and crypto balances
-- [ ] Transactions list with filters and search
+- [x] Wallet page showing fiat and crypto balances
+- [x] Transactions list with filters and search
 - [ ] Transaction details modal
 - [ ] Send/Receive flow for wallet transfers
+
+## Real-Time Crypto Data
+- [x] Crypto page with live crypto prices
+- [x] Market trends and sparkline charts (mock data)
+- [x] Wallet crypto balance display
+- [ ] Integrate CoinGecko MCP for real-time data
 
 ## Escrow System
 - [x] Escrow Hub listing all user escrows
 - [x] Status badges (pending, funded, in_progress, disputed, released, cancelled)
 - [x] Filter/search functionality in Escrow Hub
 - [x] Create Escrow form (title, description, counterparty, amount, currency, inspection period)
-- [ ] Escrow Details page with timeline and status history
-- [ ] Role-based action buttons (Fund, Release, Dispute, Cancel)
+- [x] Escrow Details page with timeline and status history
+- [x] Role-based action buttons (Fund, Release, Dispute, Cancel)
 - [ ] Shareable escrow links (public access for non-registered users)
 - [ ] Escrow link remains live until transaction complete or admin closes
 
@@ -44,14 +50,14 @@
 - [ ] Payment links for merchants
 
 ## User Profile & Settings
-- [ ] Editable profile page (full name, avatar, phone)
-- [ ] Notification preferences
-- [ ] Account settings
+- [x] Editable profile page (full name, avatar, phone)
+- [x] Notification preferences
+- [x] Account settings
 
 ## Notifications
-- [ ] Notifications panel/drawer
-- [ ] Mark-as-read functionality
-- [ ] Unread notification badge
+- [x] Notifications panel/drawer
+- [x] Mark-as-read functionality
+- [x] Unread notification badge
 - [ ] Automated email notifications for escrow status changes
 
 ## Real-Time Crypto Data
