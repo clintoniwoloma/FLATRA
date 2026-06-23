@@ -67,11 +67,12 @@
 - [ ] Wallet crypto balance display
 
 ## Backend Integration
-- [ ] Supabase database connection
+- [x] tRPC routers scaffolded (escrow, wallet, marketplace, merchant, profile)
+- [ ] Supabase database connection and queries
 - [ ] User authentication with Supabase Auth
 - [ ] Profile creation on signup
 - [ ] Wallet creation on signup
-- [ ] Escrow CRUD operations
+- [ ] Escrow CRUD operations with real data
 - [ ] Transaction logging
 - [ ] Notification system
 - [ ] Email notifications for escrow events
