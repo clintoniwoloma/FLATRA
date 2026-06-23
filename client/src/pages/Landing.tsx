@@ -55,9 +55,7 @@ export default function Landing() {
       <nav className="border-b border-border/40 backdrop-blur-sm sticky top-0 z-50">
         <div className="container h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-              <span className="text-white font-bold text-lg">F</span>
-            </div>
+            <img src="/manus-storage/flatra-logo_6131fa86.png" alt="FLATRA" className="w-10 h-10 rounded-lg" />
             <span className="text-xl font-bold">FLATRA</span>
           </div>
           <div className="flex items-center gap-3">
@@ -162,9 +160,7 @@ export default function Landing() {
         <div className="container">
           <div className="flex flex-col md:flex-row justify-between items-center gap-8">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                <span className="text-white font-bold text-sm">F</span>
-              </div>
+              <img src="/manus-storage/flatra-logo_6131fa86.png" alt="FLATRA" className="w-8 h-8 rounded-lg" />
               <span className="font-semibold">FLATRA</span>
             </div>
             <p className="text-sm text-muted-foreground">
