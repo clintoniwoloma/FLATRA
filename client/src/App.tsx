@@ -17,6 +17,8 @@ import Transactions from "./pages/Transactions";
 import Crypto from "./pages/Crypto";
 import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
+import Merchant from "./pages/Merchant";
+import Marketplace from "./pages/Marketplace";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -35,6 +37,8 @@ function Router() {
       <Route path={"/crypto"} component={Crypto} />
       <Route path={"/profile"} component={Profile} />
       <Route path={"/notifications"} component={Notifications} />
+      <Route path={"/merchant"} component={Merchant} />
+      <Route path={"/marketplace"} component={Marketplace} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

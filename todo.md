@@ -44,10 +44,10 @@
 - [ ] Escrow link remains live until transaction complete or admin closes
 
 ## Merchant & Marketplace
-- [ ] Merchant registration and profile
-- [ ] Marketplace products listing
-- [ ] Marketplace orders management
-- [ ] Payment links for merchants
+- [x] Merchant registration and profile
+- [x] Marketplace products listing
+- [x] Marketplace orders management
+- [x] Payment links for merchants
 
 ## User Profile & Settings
 - [x] Editable profile page (full name, avatar, phone)
