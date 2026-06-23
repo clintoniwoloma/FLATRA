@@ -4,7 +4,7 @@ import axios, { type AxiosInstance } from "axios";
 import { parse as parseCookieHeader } from "cookie";
 import type { Request } from "express";
 import { SignJWT, jwtVerify } from "jose";
-import type { User } from "../../drizzle/schema";
+import type { Profile } from "../../drizzle/schema";
 import * as db from "../db";
 import { ENV } from "./env";
 import type {
@@ -288,43 +288,47 @@ class SDKServer {
 
     const sessionUserId = session.openId;
     const signedInAt = new Date();
-    let user = await db.getUserByOpenId(sessionUserId);
+    let profile = await db.getProfileById(sessionUserId);
 
-    // If user not in DB, sync from OAuth server automatically
-    if (!user) {
+    // If profile not in DB, sync from OAuth server automatically
+    if (!profile) {
       try {
         const userInfo = await this.getUserInfoWithJwt(sessionToken ?? "");
-        await db.upsertUser({
-          openId: userInfo.openId,
-          name: userInfo.name || null,
-          email: userInfo.email ?? null,
-          loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
-          lastSignedIn: signedInAt,
+        await db.upsertProfile({
+          id: userInfo.openId,
+          email: userInfo.email ?? "",
+          fullName: userInfo.name || null,
+          avatarUrl: null,
+          role: userInfo.openId === ENV.ownerOpenId ? "admin" : "user",
         });
-        user = await db.getUserByOpenId(userInfo.openId);
+        profile = await db.getProfileById(userInfo.openId);
       } catch (error) {
-        console.error("[Auth] Failed to sync user from OAuth:", error);
+        console.error("[Auth] Failed to sync profile from OAuth:", error);
         throw ForbiddenError("Failed to sync user info");
       }
     }
 
-    if (!user) {
-      throw ForbiddenError("User not found");
+    if (!profile) {
+      throw ForbiddenError("Profile not found");
     }
 
-    await db.upsertUser({
-      openId: user.openId,
-      lastSignedIn: signedInAt,
+    // Update last signed in time
+    await db.upsertProfile({
+      id: profile.id,
+      email: profile.email,
+      fullName: profile.fullName,
+      avatarUrl: profile.avatarUrl,
+      role: profile.role,
     });
 
-    return user;
+    return profile;
   }
 }
 
 const CRON_OPEN_ID_PREFIX = "cron_";
 
 /** Result of `sdk.authenticateRequest`. Cron callbacks set `isCron=true` and `taskUid`; see `references/periodic-updates.md`. */
-export type AuthenticatedUser = User & {
+export type AuthenticatedUser = Profile & {
   taskUid?: string;
   isCron?: boolean;
 };
@@ -334,15 +338,14 @@ function buildCronUser(
 ): AuthenticatedUser {
   const now = new Date();
   return {
-    id: -1,
-    openId: userInfo.openId,
-    name: userInfo.name || "Manus Scheduled Task",
-    email: null,
-    loginMethod: null,
+    id: userInfo.openId,
+    email: userInfo.email ?? "cron@manus.local",
+    fullName: userInfo.name || "Manus Scheduled Task",
+    avatarUrl: null,
+    phone: null,
     role: "user",
     createdAt: now,
     updatedAt: now,
-    lastSignedIn: now,
     taskUid: userInfo.taskUid ?? undefined,
     isCron: true,
   } as AuthenticatedUser;
