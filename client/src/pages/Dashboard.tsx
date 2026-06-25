@@ -29,7 +29,7 @@ export default function Dashboard() {
       <div className="space-y-8">
         {/* Welcome Header */}
         <div>
-          <h1 className="text-3xl font-bold">Welcome back, {user?.fullName || "User"}!</h1>
+          <h1 className="text-3xl font-bold">Welcome back, {user?.user_metadata?.full_name || user?.email || "User"}!</h1>
           <p className="text-muted-foreground mt-2">Here's your financial overview</p>
         </div>
 

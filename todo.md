@@ -6,14 +6,16 @@
 - [x] CTA buttons (Login, Signup)
 - [x] Premium dark-themed design with smooth animations
 
-## Authentication
+## Authentication (Phase 1.5 - COMPLETE)
 - [x] Login page UI with email/password and Manus OAuth
 - [x] Signup page UI with email/password and Manus OAuth
 - [x] Password Reset page UI
-- [ ] Implement real email/password login against Supabase Auth
-- [ ] Implement real email/password signup against Supabase Auth with profile/wallet creation
-- [ ] Implement functional password reset flow with email delivery and verification
-- [ ] Protect authenticated routes and complete session/auth-state handling
+- [x] Implement real email/password login against Supabase Auth
+- [x] Implement real email/password signup against Supabase Auth with profile/wallet creation
+- [x] Implement functional password reset flow with email delivery and verification
+- [x] Protect authenticated routes and complete session/auth-state handling
+- [x] Remove all Manus OAuth dependencies
+- [x] Create useSupabaseAuth hook for session management
 
 ## Dashboard
 - [x] Dashboard home with wallet balance overview

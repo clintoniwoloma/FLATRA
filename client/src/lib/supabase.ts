@@ -60,7 +60,20 @@ export async function signUpWithEmail(email: string, password: string, fullName:
 
     if (profileError) {
       console.error("Error creating profile:", profileError);
-      // Don't throw - user is created in auth, profile creation is secondary
+      throw profileError;
+    }
+
+    // Create wallet record with initial balance
+    const { error: walletError } = await supabase.from("wallets").insert({
+      userId: authData.user.id,
+      balance: 0,
+      currency: "USD",
+      type: "fiat",
+    });
+
+    if (walletError) {
+      console.error("Error creating wallet:", walletError);
+      throw walletError;
     }
 
     return { user: authData.user, error: null };
