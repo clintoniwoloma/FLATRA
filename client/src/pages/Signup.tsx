@@ -1,17 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getLoginUrl } from "@/const";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { useEffect } from "react";
+import { useSupabaseAuth } from "@/_core/hooks/useSupabaseAuth";
+import { signUpWithEmail } from "@/lib/supabase";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 export default function Signup() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useSupabaseAuth();
   const [, setLocation] = useLocation();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -20,17 +19,19 @@ export default function Signup() {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   // Redirect authenticated users
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !authLoading) {
       setLocation("/dashboard");
     }
-  }, [isAuthenticated, setLocation]);
+  }, [isAuthenticated, authLoading, setLocation]);
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess(false);
 
     // Validation
     if (!fullName.trim()) {
@@ -57,18 +58,40 @@ export default function Signup() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement email/password signup with Supabase
-      // For now, redirect to Manus OAuth
-      window.location.href = getLoginUrl();
+      const { user, error: signupError } = await signUpWithEmail(email, password, fullName);
+
+      if (signupError) {
+        setError(signupError instanceof Error ? signupError.message : "Signup failed");
+        setIsLoading(false);
+        return;
+      }
+
+      if (user) {
+        setSuccess(true);
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+        setFullName("");
+        setAgreeToTerms(false);
+        
+        // Redirect after short delay
+        setTimeout(() => {
+          setLocation("/dashboard");
+        }, 1500);
+      }
     } catch (err) {
       setError("Signup failed. Please try again.");
       setIsLoading(false);
     }
   };
 
-  const handleOAuthSignup = () => {
-    window.location.href = getLoginUrl();
-  };
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -92,12 +115,17 @@ export default function Signup() {
         <Card className="w-full max-w-md p-8 border-border/40">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center mx-auto mb-4">
-              <span className="text-white font-bold text-xl">F</span>
-            </div>
+            <img src="/manus-storage/flatra-logo_6131fa86.png" alt="FLATRA" className="w-12 h-12 rounded-lg mx-auto mb-4" />
             <h1 className="text-2xl font-bold">Create Account</h1>
-            <p className="text-muted-foreground mt-2">Join FLATRA and start transacting</p>
+            <p className="text-muted-foreground mt-2">Join FLATRA today</p>
           </div>
+
+          {/* Success Message */}
+          {success && (
+            <div className="mb-6 p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-600 text-sm">
+              Account created successfully! Redirecting...
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (
@@ -106,8 +134,8 @@ export default function Signup() {
             </div>
           )}
 
-          {/* Email/Password Form */}
-          <form onSubmit={handleEmailSignup} className="space-y-4 mb-6">
+          {/* Signup Form */}
+          <form onSubmit={handleEmailSignup} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="fullName">Full Name</Label>
               <Input
@@ -116,21 +144,19 @@ export default function Signup() {
                 placeholder="John Doe"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                disabled={isLoading}
-                required
+                disabled={isLoading || success}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-                required
+                disabled={isLoading || success}
               />
             </div>
 
@@ -142,8 +168,7 @@ export default function Signup() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-                required
+                disabled={isLoading || success}
               />
               <p className="text-xs text-muted-foreground">At least 8 characters</p>
             </div>
@@ -156,8 +181,7 @@ export default function Signup() {
                 placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={isLoading}
-                required
+                disabled={isLoading || success}
               />
             </div>
 
@@ -166,64 +190,29 @@ export default function Signup() {
                 id="terms"
                 checked={agreeToTerms}
                 onCheckedChange={(checked) => setAgreeToTerms(checked as boolean)}
-                disabled={isLoading}
+                disabled={isLoading || success}
               />
               <Label htmlFor="terms" className="text-sm font-normal cursor-pointer">
                 I agree to the{" "}
-                <Button variant="link" className="p-0 h-auto">
-                  Terms of Service
-                </Button>
-                {" "}and{" "}
-                <Button variant="link" className="p-0 h-auto">
-                  Privacy Policy
+                <Button variant="link" className="p-0 h-auto text-sm text-primary">
+                  Terms and Conditions
                 </Button>
               </Label>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                "Create Account"
-              )}
+            <Button type="submit" className="w-full" disabled={isLoading || success}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading ? "Creating account..." : success ? "Account created!" : "Create Account"}
             </Button>
           </form>
 
-          {/* Divider */}
-          <div className="relative mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border/40"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-card text-muted-foreground">Or sign up with</span>
-            </div>
-          </div>
-
-          {/* OAuth Button */}
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handleOAuthSignup}
-            disabled={isLoading}
-          >
-            Sign Up with Manus
-          </Button>
-
           {/* Sign In Link */}
-          <div className="mt-6 text-center text-sm">
+          <div className="text-center text-sm mt-6 pt-6 border-t border-border/40">
             <span className="text-muted-foreground">Already have an account? </span>
             <Button
               variant="link"
-              className="p-0 h-auto"
               onClick={() => setLocation("/login")}
+              className="text-primary hover:text-primary/80"
             >
               Sign in
             </Button>

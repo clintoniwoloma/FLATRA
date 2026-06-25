@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { useEffect } from "react";
+import { resetPassword, updatePassword } from "@/lib/supabase";
 import { Loader2, ArrowLeft, CheckCircle } from "lucide-react";
 
 export default function PasswordReset() {
@@ -29,11 +29,16 @@ export default function PasswordReset() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement password reset request with Supabase
+      const { error: resetError } = await resetPassword(email);
+      if (resetError) {
+        setError(resetError instanceof Error ? resetError.message : "Failed to send reset email");
+        setIsLoading(false);
+        return;
+      }
       setStep("code");
+      setIsLoading(false);
     } catch (err) {
       setError("Failed to send reset email. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -76,11 +81,16 @@ export default function PasswordReset() {
     setIsLoading(true);
 
     try {
-      // TODO: Reset password with Supabase
+      const { error: updateError } = await updatePassword(password);
+      if (updateError) {
+        setError(updateError instanceof Error ? updateError.message : "Failed to reset password");
+        setIsLoading(false);
+        return;
+      }
       setStep("success");
+      setIsLoading(false);
     } catch (err) {
       setError("Failed to reset password. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -127,9 +137,7 @@ export default function PasswordReset() {
             <>
               {/* Header */}
               <div className="text-center mb-8">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center mx-auto mb-4">
-                  <span className="text-white font-bold text-xl">F</span>
-                </div>
+                <img src="/manus-storage/flatra-logo_6131fa86.png" alt="FLATRA" className="w-12 h-12 rounded-lg mx-auto mb-4" />
                 <h1 className="text-2xl font-bold">Reset Password</h1>
                 <p className="text-muted-foreground mt-2">
                   {step === "email" && "Enter your email to receive a reset code"}

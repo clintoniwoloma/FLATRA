@@ -1,16 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { getLoginUrl } from "@/const";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { useEffect } from "react";
+import { useSupabaseAuth } from "@/_core/hooks/useSupabaseAuth";
+import { signInWithEmail } from "@/lib/supabase";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 export default function Login() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useSupabaseAuth();
   const [, setLocation] = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,10 +18,10 @@ export default function Login() {
 
   // Redirect authenticated users
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !authLoading) {
       setLocation("/dashboard");
     }
-  }, [isAuthenticated, setLocation]);
+  }, [isAuthenticated, authLoading, setLocation]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,18 +29,41 @@ export default function Login() {
     setError("");
 
     try {
-      // TODO: Implement email/password login with Supabase
-      // For now, redirect to Manus OAuth
-      window.location.href = getLoginUrl();
+      if (!email.trim()) {
+        setError("Please enter your email");
+        setIsLoading(false);
+        return;
+      }
+      if (!password) {
+        setError("Please enter your password");
+        setIsLoading(false);
+        return;
+      }
+
+      const { session, user, error: loginError } = await signInWithEmail(email, password);
+
+      if (loginError) {
+        setError(loginError instanceof Error ? loginError.message : "Login failed");
+        setIsLoading(false);
+        return;
+      }
+
+      if (user && session) {
+        setLocation("/dashboard");
+      }
     } catch (err) {
       setError("Login failed. Please try again.");
       setIsLoading(false);
     }
   };
 
-  const handleOAuthLogin = () => {
-    window.location.href = getLoginUrl();
-  };
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -65,9 +87,7 @@ export default function Login() {
         <Card className="w-full max-w-md p-8 border-border/40">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center mx-auto mb-4">
-              <span className="text-white font-bold text-xl">F</span>
-            </div>
+            <img src="/manus-storage/flatra-logo_6131fa86.png" alt="FLATRA" className="w-12 h-12 rounded-lg mx-auto mb-4" />
             <h1 className="text-2xl font-bold">Welcome Back</h1>
             <p className="text-muted-foreground mt-2">Sign in to your FLATRA account</p>
           </div>
@@ -79,18 +99,17 @@ export default function Login() {
             </div>
           )}
 
-          {/* Email/Password Form */}
-          <form onSubmit={handleEmailLogin} className="space-y-4 mb-6">
+          {/* Email Login Form */}
+          <form onSubmit={handleEmailLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
-                required
               />
             </div>
 
@@ -103,67 +122,45 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
-                required
               />
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
-              )}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
 
           {/* Divider */}
-          <div className="relative mb-6">
+          <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-border/40"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-card text-muted-foreground">Or continue with</span>
+              <span className="px-2 bg-card text-muted-foreground">or</span>
             </div>
           </div>
 
-          {/* OAuth Button */}
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handleOAuthLogin}
-            disabled={isLoading}
-          >
-            Sign In with Manus
-          </Button>
-
-          {/* Sign Up Link */}
-          <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">Don't have an account? </span>
+          {/* Password Reset Link */}
+          <div className="text-center text-sm">
             <Button
               variant="link"
-              className="p-0 h-auto"
-              onClick={() => setLocation("/signup")}
+              onClick={() => setLocation("/password-reset")}
+              className="text-primary hover:text-primary/80"
             >
-              Sign up
+              Forgot your password?
             </Button>
           </div>
 
-          {/* Password Reset Link */}
-          <div className="mt-4 text-center">
+          {/* Sign Up Link */}
+          <div className="text-center text-sm mt-6 pt-6 border-t border-border/40">
+            <span className="text-muted-foreground">Don't have an account? </span>
             <Button
               variant="link"
-              className="p-0 h-auto text-xs"
-              onClick={() => setLocation("/password-reset")}
+              onClick={() => setLocation("/signup")}
+              className="text-primary hover:text-primary/80"
             >
-              Forgot your password?
+              Sign up
             </Button>
           </div>
         </Card>
