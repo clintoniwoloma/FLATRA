@@ -68,12 +68,12 @@
 - [ ] Market trends and sparkline charts
 - [ ] Wallet crypto balance display
 
-## Backend Integration
+## Backend Integration (Phase 1.5 - PARTIAL)
 - [x] tRPC routers scaffolded (escrow, wallet, marketplace, merchant, profile)
-- [ ] Supabase database connection and queries
-- [ ] User authentication with Supabase Auth
-- [ ] Profile creation on signup
-- [ ] Wallet creation on signup
+- [x] Supabase database connection and queries
+- [x] User authentication with Supabase Auth
+- [x] Profile creation on signup
+- [x] Wallet creation on signup
 - [ ] Escrow CRUD operations with real data
 - [ ] Transaction logging
 - [ ] Notification system
