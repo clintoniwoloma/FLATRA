@@ -58,10 +58,12 @@ export default function Signup() {
     setIsLoading(true);
 
     try {
-      const { user, error: signupError } = await signUpWithEmail(email, password, fullName);
+      const { user, error: signupError, requiresEmailConfirmation } = await signUpWithEmail(email, password, fullName);
 
       if (signupError) {
-        setError(signupError instanceof Error ? signupError.message : "Signup failed");
+        const errorMsg = signupError instanceof Error ? signupError.message : "Signup failed";
+        console.error("Signup error:", errorMsg);
+        setError(errorMsg);
         setIsLoading(false);
         return;
       }

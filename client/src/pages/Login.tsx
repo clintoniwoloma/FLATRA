@@ -43,7 +43,9 @@ export default function Login() {
       const { session, user, error: loginError } = await signInWithEmail(email, password);
 
       if (loginError) {
-        setError(loginError instanceof Error ? loginError.message : "Login failed");
+        const errorMsg = loginError instanceof Error ? loginError.message : "Login failed";
+        console.error("Login error:", errorMsg);
+        setError(errorMsg);
         setIsLoading(false);
         return;
       }

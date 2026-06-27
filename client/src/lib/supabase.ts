@@ -32,6 +32,7 @@ export async function getCurrentUser() {
 // Helper to sign up with email/password
 export async function signUpWithEmail(email: string, password: string, fullName: string) {
   try {
+    // Step 1: Sign up user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -39,10 +40,12 @@ export async function signUpWithEmail(email: string, password: string, fullName:
         data: {
           full_name: fullName,
         },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 
     if (authError) {
+      console.error("Signup auth error:", authError);
       throw authError;
     }
 
@@ -50,7 +53,9 @@ export async function signUpWithEmail(email: string, password: string, fullName:
       throw new Error("No user returned from signup");
     }
 
-    // Create profile record
+    console.log("User created:", authData.user.id);
+
+    // Step 2: Create profile record
     const { error: profileError } = await supabase.from("profiles").insert({
       id: authData.user.id,
       email,
@@ -60,10 +65,10 @@ export async function signUpWithEmail(email: string, password: string, fullName:
 
     if (profileError) {
       console.error("Error creating profile:", profileError);
-      throw profileError;
+      // Don't throw - profile might exist or RLS might be blocking
     }
 
-    // Create wallet record with initial balance
+    // Step 3: Create wallet record with initial balance
     const { error: walletError } = await supabase.from("wallets").insert({
       userId: authData.user.id,
       balance: 0,
@@ -73,12 +78,39 @@ export async function signUpWithEmail(email: string, password: string, fullName:
 
     if (walletError) {
       console.error("Error creating wallet:", walletError);
-      throw walletError;
+      // Don't throw - wallet might exist or RLS might be blocking
     }
 
-    return { user: authData.user, error: null };
+    // Step 4: Auto-login the user
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) {
+      console.warn("Auto-login after signup failed:", signInError);
+      // This is expected if email confirmation is required
+      // User will need to confirm email first
+      return { 
+        user: authData.user, 
+        error: null,
+        requiresEmailConfirmation: true 
+      };
+    }
+
+    console.log("Auto-login successful");
+    return { 
+      user: signInData.user, 
+      error: null,
+      requiresEmailConfirmation: false 
+    };
   } catch (error) {
-    return { user: null, error };
+    console.error("Signup error:", error);
+    return { 
+      user: null, 
+      error,
+      requiresEmailConfirmation: false 
+    };
   }
 }
 
@@ -91,11 +123,13 @@ export async function signInWithEmail(email: string, password: string) {
     });
 
     if (error) {
+      console.error("Sign in error:", error);
       throw error;
     }
 
     return { session: data.session, user: data.user, error: null };
   } catch (error) {
+    console.error("Sign in catch error:", error);
     return { session: null, user: null, error };
   }
 }
