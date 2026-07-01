@@ -5,16 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { useSupabaseAuth } from "@/_core/hooks/useSupabaseAuth";
-import { signInWithEmail } from "@/lib/supabase";
+import { signInWithEmail, signInWithFullName } from "@/lib/supabase";
 import { Loader2, ArrowLeft } from "lucide-react";
 
 export default function Login() {
   const { isAuthenticated, loading: authLoading } = useSupabaseAuth();
   const [, setLocation] = useLocation();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loginMode, setLoginMode] = useState<"email" | "fullname">("email");
 
   // Redirect authenticated users
   useEffect(() => {
@@ -23,14 +24,14 @@ export default function Login() {
     }
   }, [isAuthenticated, authLoading, setLocation]);
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
     try {
-      if (!email.trim()) {
-        setError("Please enter your email");
+      if (!identifier.trim()) {
+        setError(`Please enter your ${loginMode === "email" ? "email" : "full name"}`);
         setIsLoading(false);
         return;
       }
@@ -40,7 +41,14 @@ export default function Login() {
         return;
       }
 
-      const { session, user, error: loginError } = await signInWithEmail(email, password);
+      let result;
+      if (loginMode === "email") {
+        result = await signInWithEmail(identifier, password);
+      } else {
+        result = await signInWithFullName(identifier, password);
+      }
+
+      const { session, user, error: loginError } = result;
 
       if (loginError) {
         const errorMsg = loginError instanceof Error ? loginError.message : "Login failed";
@@ -101,16 +109,42 @@ export default function Login() {
             </div>
           )}
 
-          {/* Email Login Form */}
-          <form onSubmit={handleEmailLogin} className="space-y-4">
+          {/* Login Mode Toggle */}
+          <div className="mb-6 flex gap-2">
+            <Button
+              type="button"
+              variant={loginMode === "email" ? "default" : "outline"}
+              size="sm"
+              className="flex-1"
+              onClick={() => setLoginMode("email")}
+              disabled={isLoading}
+            >
+              Email
+            </Button>
+            <Button
+              type="button"
+              variant={loginMode === "fullname" ? "default" : "outline"}
+              size="sm"
+              className="flex-1"
+              onClick={() => setLoginMode("fullname")}
+              disabled={isLoading}
+            >
+              Full Name
+            </Button>
+          </div>
+
+          {/* Login Form */}
+          <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="identifier">
+                {loginMode === "email" ? "Email" : "Full Name"}
+              </Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="identifier"
+                type={loginMode === "email" ? "email" : "text"}
+                placeholder={loginMode === "email" ? "your@email.com" : "John Doe"}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 disabled={isLoading}
               />
             </div>

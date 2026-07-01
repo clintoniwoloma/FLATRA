@@ -1,12 +1,11 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { getLoginUrl } from "@/const";
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useSupabaseAuth } from "@/_core/hooks/useSupabaseAuth";
 import { ArrowRight, Shield, Zap, TrendingUp, ShoppingCart, Coins } from "lucide-react";
 
 export default function Landing() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useSupabaseAuth();
   const [, setLocation] = useLocation();
 
   // Redirect authenticated users to dashboard
@@ -59,8 +58,8 @@ export default function Landing() {
             <span className="text-xl font-bold">FLATRA</span>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" asChild>
-              <a href={getLoginUrl()}>Login</a>
+            <Button variant="ghost" onClick={() => setLocation("/login")}>
+              Login
             </Button>
             <Button asChild>
               <a href="/signup">Sign Up</a>
@@ -95,8 +94,8 @@ export default function Landing() {
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </a>
               </Button>
-              <Button size="lg" variant="outline" asChild>
-                <a href={getLoginUrl()}>Sign In</a>
+              <Button size="lg" variant="outline" onClick={() => setLocation("/login")}>
+                Sign In
               </Button>
             </div>
           </div>
@@ -147,8 +146,8 @@ export default function Landing() {
               <Button size="lg" asChild>
                 <a href="/signup">Create Account</a>
               </Button>
-              <Button size="lg" variant="outline" asChild>
-                <a href={getLoginUrl()}>Login</a>
+              <Button size="lg" variant="outline" onClick={() => setLocation("/login")}>
+                Login
               </Button>
             </div>
           </div>

@@ -181,6 +181,30 @@ export async function updatePassword(newPassword: string) {
   }
 }
 
+// Helper to sign in with full name (resolves to email)
+export async function signInWithFullName(fullName: string, password: string) {
+  try {
+    // Look up email by full name
+    const { data: profiles, error: lookupError } = await supabase
+      .from("profiles")
+      .select("email")
+      .eq("full_name", fullName)
+      .limit(1);
+
+    if (lookupError || !profiles || profiles.length === 0) {
+      return { session: null, user: null, error: new Error("User not found") };
+    }
+
+    const email = profiles[0].email;
+
+    // Sign in with resolved email
+    return signInWithEmail(email, password);
+  } catch (error) {
+    console.error("Full name sign in error:", error);
+    return { session: null, user: null, error };
+  }
+}
+
 // Listen to auth state changes
 export function onAuthStateChange(callback: (session: any) => void) {
   return supabase.auth.onAuthStateChange((event, session) => {
