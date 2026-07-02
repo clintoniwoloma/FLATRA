@@ -1,0 +1,97 @@
+{
+  "name": "FLATRA - Premium Fintech Super App",
+  "short_name": "FLATRA",
+  "description": "Escrow transactions, instant payments, merchant tools, and crypto utility. All in one elegant platform built for the modern financial world.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#7C3AED",
+  "background_color": "#09090B",
+  "categories": ["finance", "productivity"],
+  "screenshots": [
+    {
+      "src": "/manus-storage/flatra-logo_6131fa86.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/manus-storage/flatra-logo_6131fa86.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/manus-storage/flatra-logo_6131fa86.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/manus-storage/flatra-logo_6131fa86.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/manus-storage/flatra-logo_6131fa86.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Send Money",
+      "short_name": "Send",
+      "description": "Send money instantly to another FLATRA user",
+      "url": "/wallet?action=send",
+      "icons": [
+        {
+          "src": "/manus-storage/flatra-logo_6131fa86.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Create Escrow",
+      "short_name": "Escrow",
+      "description": "Create a new escrow transaction",
+      "url": "/escrow/create",
+      "icons": [
+        {
+          "src": "/manus-storage/flatra-logo_6131fa86.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "View Wallet",
+      "short_name": "Wallet",
+      "description": "Check your wallet balance and transactions",
+      "url": "/wallet",
+      "icons": [
+        {
+          "src": "/manus-storage/flatra-logo_6131fa86.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

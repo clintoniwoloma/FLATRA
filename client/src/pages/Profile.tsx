@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
+import { InstallButton } from "@/components/InstallButton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -58,9 +59,12 @@ export default function Profile() {
     <DashboardLayout>
       <div className="space-y-8">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold">Profile Settings</h1>
-          <p className="text-muted-foreground mt-2">Manage your account and preferences</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Profile Settings</h1>
+            <p className="text-muted-foreground mt-2">Manage your account and preferences</p>
+          </div>
+          <InstallButton variant="outline" size="sm" showText={true} />
         </div>
 
         <Tabs defaultValue="profile" className="w-full">

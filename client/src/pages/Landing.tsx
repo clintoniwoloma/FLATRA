@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useSupabaseAuth } from "@/_core/hooks/useSupabaseAuth";
+import { InstallButton } from "@/components/InstallButton";
 import { ArrowRight, Shield, Zap, TrendingUp, ShoppingCart, Coins } from "lucide-react";
 
 export default function Landing() {
@@ -58,6 +59,7 @@ export default function Landing() {
             <span className="text-xl font-bold">FLATRA</span>
           </div>
           <div className="flex items-center gap-3">
+            <InstallButton size="sm" showText={true} />
             <Button variant="ghost" onClick={() => setLocation("/login")}>
               Login
             </Button>
