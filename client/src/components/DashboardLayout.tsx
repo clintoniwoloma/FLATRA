@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { useSupabaseAuth } from '@/_core/hooks/useSupabaseAuth';
 import { useIsMobile } from '@/hooks/useMobile';
@@ -10,20 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  useSidebar,
-} from '@/components/ui/sidebar';
 import { DESKTOP_SIDEBAR_ITEMS, MOBILE_BOTTOM_NAV_ITEMS, MOBILE_FAB_ACTIONS } from '@/config/navigation';
-import { ChevronDown, LogOut, Plus } from 'lucide-react';
+import { ChevronDown, LogOut, Plus, Menu, X } from 'lucide-react';
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 
 export default function DashboardLayout({
@@ -82,52 +70,48 @@ function DesktopLayout({
   const [, setLocation] = useLocation();
 
   return (
-    <SidebarProvider>
-      <Sidebar className="border-r border-border/40">
-        <SidebarHeader className="border-b border-border/40 px-4 py-6">
-          <div className="flex items-center gap-2">
-            <img src="/manus-storage/flatra-logo_6131fa86.png" alt="FLATRA" className="w-8 h-8 rounded-lg" />
-            <span className="text-lg font-bold">FLATRA</span>
-          </div>
-        </SidebarHeader>
+    <div className="flex min-h-screen bg-background">
+      {/* Sidebar */}
+      <aside className="w-64 border-r border-border/40 bg-background/95 backdrop-blur-sm flex flex-col">
+        {/* Logo */}
+        <div className="border-b border-border/40 px-6 py-6 flex items-center gap-3">
+          <img src="/manus-storage/flatra-logo_6131fa86.png" alt="FLATRA" className="w-8 h-8 rounded-lg" />
+          <span className="text-lg font-bold">FLATRA</span>
+        </div>
 
-        <SidebarContent>
-          <SidebarMenu>
-            {DESKTOP_SIDEBAR_ITEMS.map((item) => {
-              const Icon = item.icon;
-              return (
-                <SidebarMenuItem key={item.path}>
-                  <SidebarMenuButton
-                    asChild
-                    onClick={() => setLocation(item.path)}
-                    className="cursor-pointer"
-                  >
-                    <a href={item.path} className="flex items-center gap-3">
-                      <Icon className="w-5 h-5" />
-                      <span>{item.label}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              );
-            })}
-          </SidebarMenu>
-        </SidebarContent>
+        {/* Navigation Menu */}
+        <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-2">
+          {DESKTOP_SIDEBAR_ITEMS.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.path}
+                onClick={() => setLocation(item.path)}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              >
+                <Icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
 
-        <SidebarFooter className="border-t border-border/40 px-4 py-4">
+        {/* User Profile Footer */}
+        <div className="border-t border-border/40 px-4 py-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-full justify-between px-2">
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-8 h-8">
+              <Button variant="ghost" className="w-full justify-between px-2 h-auto py-2">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <Avatar className="w-8 h-8 flex-shrink-0">
                     <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.user_metadata?.full_name || 'user'}`} />
                     <AvatarFallback>{user?.user_metadata?.full_name?.charAt(0) || 'U'}</AvatarFallback>
                   </Avatar>
-                  <div className="text-left">
-                    <p className="text-sm font-medium">{user?.user_metadata?.full_name || 'User'}</p>
-                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                  <div className="text-left min-w-0">
+                    <p className="text-sm font-medium truncate">{user?.user_metadata?.full_name || 'User'}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                   </div>
                 </div>
-                <ChevronDown className="w-4 h-4" />
+                <ChevronDown className="w-4 h-4 flex-shrink-0" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -143,15 +127,14 @@ function DesktopLayout({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </SidebarFooter>
-      </Sidebar>
+        </div>
+      </aside>
 
-      <SidebarInset>
-        <main className="flex-1 overflow-auto">
-          <div className="p-8">{children}</div>
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto">
+        <div className="p-8">{children}</div>
+      </main>
+    </div>
   );
 }
 
@@ -166,6 +149,7 @@ function MobileLayout({
 }) {
   const [, setLocation] = useLocation();
   const [showFAB, setShowFAB] = useState(false);
+  const [showNav, setShowNav] = useState(false);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -206,33 +190,27 @@ function MobileLayout({
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 border-t border-border/40 bg-background/95 backdrop-blur-sm">
-        <div className="flex items-center justify-around h-20">
+        <div className="flex items-center justify-around px-2 py-3">
           {MOBILE_BOTTOM_NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             return (
               <button
                 key={item.path}
                 onClick={() => setLocation(item.path)}
-                className="flex flex-col items-center justify-center gap-1 flex-1 h-full hover:bg-muted/50 transition-colors"
+                className="flex flex-col items-center gap-1 px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Icon className="w-6 h-6" />
-                <span className="text-xs font-medium">{item.label}</span>
+                <span>{item.label}</span>
               </button>
             );
           })}
-
-          {/* FAB Button */}
-          <button
-            onClick={() => setShowFAB(!showFAB)}
-            className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
-          >
-            <Plus className="w-6 h-6" />
-          </button>
         </div>
+      </nav>
 
-        {/* FAB Menu */}
+      {/* FAB Menu */}
+      <div className="fixed bottom-24 right-4 z-30">
         {showFAB && (
-          <div className="absolute bottom-24 right-6 bg-card border border-border/40 rounded-2xl shadow-lg p-2 space-y-2 w-48">
+          <div className="absolute bottom-0 right-0 flex flex-col gap-2 mb-4">
             {MOBILE_FAB_ACTIONS.map((action) => {
               const Icon = action.icon;
               return (
@@ -242,16 +220,22 @@ function MobileLayout({
                     setLocation(action.path);
                     setShowFAB(false);
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted/50 transition-colors text-left"
+                  className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-full shadow-lg hover:shadow-xl transition-all text-sm font-medium"
                 >
-                  <Icon className="w-5 h-5" />
-                  <span className="text-sm font-medium">{action.label}</span>
+                  <Icon className="w-4 h-4" />
+                  <span>{action.label}</span>
                 </button>
               );
             })}
           </div>
         )}
-      </nav>
+        <button
+          onClick={() => setShowFAB(!showFAB)}
+          className="flex items-center justify-center w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl transition-all"
+        >
+          {showFAB ? <X className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
+        </button>
+      </div>
     </div>
   );
 }
