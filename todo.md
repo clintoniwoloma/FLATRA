@@ -69,12 +69,12 @@
 - [ ] Automated email notifications for escrow status changes
 
 ## Navigation (Phase 1.6 Part 2 - COMPLETE)
-- [x] Desktop sidebar with 11 items
+- [x] Desktop sidebar with 11 items (Dashboard, Wallets, Transactions, Escrow, Payments, Marketplace, Crypto, Merchant, Notifications, Profile, Settings)
 - [x] Mobile bottom navigation with 5 items
-- [x] Mobile FAB with quick actions
+- [x] Mobile FAB with quick actions (Send Money, Request, Pay Merchant, Create Escrow)
 - [x] Responsive design (desktop/mobile)
-- [x] User profile dropdown
-- [x] Logout functionality
+- [x] User profile dropdown with logout
+- [x] Fixed "Page 1" and "Page 2" fallback - now shows proper menu items
 
 ## Real-Time Crypto Data
 - [ ] CoinGecko integration for live crypto prices
