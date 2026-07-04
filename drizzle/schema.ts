@@ -8,7 +8,8 @@ import { relations } from "drizzle-orm";
 
 // Enums
 export const userRoleEnum = pgEnum("user_role", ["user", "merchant", "admin"]);
-export const escrowStatusEnum = pgEnum("escrow_status", ["pending", "funded", "in_progress", "disputed", "released", "cancelled"]);
+export const escrowStatusEnum = pgEnum("escrow_status", ["draft", "created", "funded", "accepted", "delivered", "released", "disputed", "cancelled"]);
+export const escrowTransactionTypeEnum = pgEnum("escrow_transaction_type", ["products", "services", "freelance", "digital_goods"]);
 export const transactionTypeEnum = pgEnum("transaction_type", ["deposit", "withdrawal", "transfer", "escrow_funding", "escrow_release", "payment"]);
 export const transactionStatusEnum = pgEnum("transaction_status", ["pending", "completed", "failed", "cancelled"]);
 export const merchantStatusEnum = pgEnum("merchant_status", ["pending", "verified", "suspended"]);
@@ -68,8 +69,14 @@ export const escrows = pgTable("escrows", {
   sellerId: uuid("seller_id").references(() => profiles.id, { onDelete: "set null" }),
   amount: numeric("amount", { precision: 20, scale: 8 }).notNull(),
   currency: varchar("currency", { length: 10 }).default("USD").notNull(),
-  status: escrowStatusEnum("status").default("pending").notNull(),
-  inspectionPeriodDays: integer("inspection_period_days").default(3),
+  status: escrowStatusEnum("status").default("draft").notNull(),
+  transactionType: escrowTransactionTypeEnum("transaction_type").default("products"),
+  deliveryDeadline: timestamp("delivery_deadline", { withTimezone: true }),
+  fundedAt: timestamp("funded_at", { withTimezone: true }),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+  deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+  releasedAt: timestamp("released_at", { withTimezone: true }),
+  disputedAt: timestamp("disputed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });

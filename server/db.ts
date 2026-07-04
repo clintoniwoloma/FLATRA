@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { eq } from "drizzle-orm";
-import { profiles, wallets, type InsertProfile, type Profile } from "../drizzle/schema";
+import { profiles, wallets, escrows, notifications, type InsertProfile, type Profile, type Escrow, type InsertEscrow, type Notification, type InsertNotification } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -128,4 +128,104 @@ export async function getProfileByEmail(email: string): Promise<Profile | undefi
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+/**
+ * Escrow Database Helpers
+ */
+
+export async function createEscrow(data: InsertEscrow): Promise<Escrow | undefined> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create escrow: database not available");
+    return undefined;
+  }
+
+  try {
+    const result = await db.insert(escrows).values(data).returning();
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to create escrow:", error);
+    throw error;
+  }
+}
+
+export async function getEscrowById(id: string): Promise<Escrow | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db
+    .select()
+    .from(escrows)
+    .where(eq(escrows.id, id))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getEscrowsByBuyer(buyerId: string): Promise<Escrow[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(escrows)
+    .where(eq(escrows.buyerId, buyerId))
+    .orderBy((e) => e.createdAt);
+}
+
+export async function getEscrowsBySeller(sellerId: string): Promise<Escrow[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(escrows)
+    .where(eq(escrows.sellerId, sellerId))
+    .orderBy((e) => e.createdAt);
+}
+
+export async function updateEscrowStatus(id: string, status: string): Promise<Escrow | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  try {
+    const result = await db
+      .update(escrows)
+      .set({ status: status as any, updatedAt: new Date() })
+      .where(eq(escrows.id, id))
+      .returning();
+
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to update escrow status:", error);
+    throw error;
+  }
+}
+
+/**
+ * Notification Database Helpers
+ */
+
+export async function createNotification(data: InsertNotification): Promise<Notification | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  try {
+    const result = await db.insert(notifications).values(data).returning();
+    return result.length > 0 ? result[0] : undefined;
+  } catch (error) {
+    console.error("[Database] Failed to create notification:", error);
+    throw error;
+  }
+}
+
+export async function getNotificationsByUser(userId: string, limit: number = 50): Promise<Notification[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db
+    .select()
+    .from(notifications)
+    .where(eq(notifications.userId, userId))
+    .orderBy((n) => n.createdAt)
+    .limit(limit);
+}
