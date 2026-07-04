@@ -21,12 +21,26 @@ export async function getCurrentSession() {
 
 // Helper to get current user
 export async function getCurrentUser() {
-  const { data, error } = await supabase.auth.getUser();
-  if (error) {
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) {
+      // AuthSessionMissingError is expected on public pages - return null silently
+      if (error.message?.includes("Auth session missing")) {
+        return null;
+      }
+      console.error("Error getting user:", error);
+      return null;
+    }
+    return data.user;
+  } catch (error) {
+    // Handle any thrown errors gracefully
+    if (error instanceof Error && error.message?.includes("Auth session missing")) {
+      // Silent - this is expected on public pages when no session exists
+      return null;
+    }
     console.error("Error getting user:", error);
     return null;
   }
-  return data.user;
 }
 
 // Helper to sign up with email/password
