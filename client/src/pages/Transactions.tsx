@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TransactionDetailsModal } from "@/components/TransactionDetailsModal";
 import { Search, Filter, Download, ArrowDownLeft, Send } from "lucide-react";
 
 interface Transaction {
@@ -20,12 +20,25 @@ interface Transaction {
   time: string;
 }
 
+interface TransactionDetail {
+  id: string;
+  type: 'send' | 'receive' | 'escrow' | 'payment';
+  amount: string;
+  currency: string;
+  status: 'completed' | 'pending' | 'failed';
+  from: { name: string; address: string };
+  to: { name: string; address: string };
+  date: Date;
+  description?: string;
+}
+
 export default function Transactions() {
-  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [isLoading] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<TransactionDetail | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   // Mock transactions data
   const transactions: Transaction[] = [
@@ -229,7 +242,21 @@ export default function Transactions() {
               <Card
                 key={tx.id}
                 className="p-6 hover:border-primary/40 cursor-pointer transition-colors"
-                onClick={() => setLocation(`/transactions/${tx.id}`)}
+                onClick={() => {
+                  const detail: TransactionDetail = {
+                    id: tx.id,
+                    type: tx.type.includes('escrow') ? 'escrow' : tx.type === 'transfer' ? 'send' : 'receive',
+                    amount: tx.amount.toString(),
+                    currency: tx.currency,
+                    status: tx.status === 'completed' ? 'completed' : tx.status === 'pending' ? 'pending' : 'failed',
+                    from: { name: 'Your Account', address: 'wallet_address_1' },
+                    to: { name: tx.counterparty || 'Bank', address: 'wallet_address_2' },
+                    date: new Date(tx.date),
+                    description: tx.description,
+                  };
+                  setSelectedTransaction(detail);
+                  setModalOpen(true);
+                }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4 flex-1">
@@ -262,11 +289,14 @@ export default function Transactions() {
         ) : (
           <Card className="p-12 text-center">
             <p className="text-muted-foreground mb-4">No transactions found</p>
-            <Button variant="outline" onClick={() => setLocation("/dashboard")}>
-              Back to Dashboard
-            </Button>
           </Card>
         )}
+
+        <TransactionDetailsModal
+          transaction={selectedTransaction}
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+        />
       </div>
     </DashboardLayout>
   );

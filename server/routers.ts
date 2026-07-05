@@ -7,6 +7,7 @@ import { walletRouter } from "./routers/wallet";
 import { marketplaceRouter } from "./routers/marketplace";
 import { merchantRouter } from "./routers/merchant";
 import { profileRouter } from "./routers/profile";
+import { cryptoRouter } from "./routers/crypto";
 
 export const appRouter = router({
   // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -28,6 +29,7 @@ export const appRouter = router({
   marketplace: marketplaceRouter,
   merchant: merchantRouter,
   profile: profileRouter,
+  crypto: cryptoRouter,
 });
 
 export type AppRouter = typeof appRouter;
