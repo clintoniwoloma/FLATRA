@@ -11,7 +11,7 @@ import PasswordReset from "./pages/PasswordReset";
 import Dashboard from "./pages/Dashboard";
 import EscrowHub from "./pages/EscrowHub";
 import CreateEscrow from "./pages/CreateEscrow";
-import EscrowDetails from "./pages/EscrowDetails";
+import EscrowDetail from "./pages/EscrowDetail";
 import Wallet from "./pages/Wallet";
 import Transactions from "./pages/Transactions";
 import Crypto from "./pages/Crypto";
@@ -31,7 +31,7 @@ function Router() {
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/escrow"} component={EscrowHub} />
       <Route path={"/escrow/create"} component={CreateEscrow} />
-      <Route path={"/escrow/:id"} component={EscrowDetails} />
+      <Route path={"/escrow/:id"} component={EscrowDetail} />
       <Route path={"/wallet"} component={Wallet} />
       <Route path={"/transactions"} component={Transactions} />
       <Route path={"/crypto"} component={Crypto} />
