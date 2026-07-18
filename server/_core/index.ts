@@ -84,6 +84,11 @@ export async function createApp() {
     serveStatic(app);
   }
 
+  // Lightweight healthcheck for hosting platforms
+  app.get("/_health", (_req, res) => {
+    res.json({ ok: true, timestamp: Date.now() });
+  });
+
   return app;
 }
 
