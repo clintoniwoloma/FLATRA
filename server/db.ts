@@ -229,3 +229,108 @@ export async function getNotificationsByUser(userId: string, limit: number = 50)
     .orderBy((n) => n.createdAt)
     .limit(limit);
 }
+
+/**
+ * Crypto cache helpers - store CoinGecko snapshots for quick reads
+ */
+export async function ensureCryptoCacheTable(): Promise<void> {
+  if (!_client) return;
+  try {
+    await _client.query(
+      `CREATE TABLE IF NOT EXISTS crypto_cache (
+        id TEXT PRIMARY KEY,
+        data JSONB NOT NULL,
+        price NUMERIC(30,8) NOT NULL,
+        market_cap NUMERIC(40,2) NOT NULL,
+        volume24h NUMERIC(40,2) NOT NULL,
+        change24h NUMERIC(20,8) NOT NULL,
+        change7d NUMERIC(20,8),
+        change30d NUMERIC(20,8),
+        image TEXT,
+        updated_at TIMESTAMPTZ DEFAULT now()
+      );`
+    );
+  } catch (e) {
+    console.warn("[Database] Failed to ensure crypto_cache table:", e);
+  }
+}
+
+export type CryptoCacheRow = {
+  id: string;
+  data: any;
+  price: string;
+  market_cap: string;
+  volume24h: string;
+  change24h: string;
+  change7d: string | null;
+  change30d: string | null;
+  image: string | null;
+  updated_at: string;
+};
+
+export async function getCryptoCache(limit: number = 10): Promise<CryptoCacheRow[]> {
+  if (!_client) return [];
+  try {
+    await ensureCryptoCacheTable();
+    const res = await _client.query(`SELECT id, data, price, market_cap, volume24h, change24h, change7d, change30d, image, updated_at FROM crypto_cache ORDER BY market_cap::numeric DESC LIMIT $1`, [limit]);
+    return res.map((r: any) => ({
+      id: r.id,
+      data: r.data,
+      price: r.price,
+      market_cap: r.market_cap,
+      volume24h: r.volume24h,
+      change24h: r.change24h,
+      change7d: r.change7d,
+      change30d: r.change30d,
+      image: r.image,
+      updated_at: r.updated_at,
+    }));
+  } catch (e) {
+    console.warn("[Database] Failed to read crypto_cache:", e);
+    return [];
+  }
+}
+
+export async function getCryptoCacheById(id: string): Promise<CryptoCacheRow | null> {
+  if (!_client) return null;
+  try {
+    await ensureCryptoCacheTable();
+    const res = await _client.query(`SELECT id, data, price, market_cap, volume24h, change24h, change7d, change30d, image, updated_at FROM crypto_cache WHERE id = $1 LIMIT 1`, [id]);
+    if (res.length === 0) return null;
+    const r = res[0];
+    return {
+      id: r.id,
+      data: r.data,
+      price: r.price,
+      market_cap: r.market_cap,
+      volume24h: r.volume24h,
+      change24h: r.change24h,
+      change7d: r.change7d,
+      change30d: r.change30d,
+      image: r.image,
+      updated_at: r.updated_at,
+    };
+  } catch (e) {
+    console.warn("[Database] Failed to read crypto_cache by id:", e);
+    return null;
+  }
+}
+
+export async function upsertCryptoCacheRows(rows: Array<{ id: string; data: any; price: number; marketCap: number; volume24h: number; change24h: number; change7d?: number | null; change30d?: number | null; image?: string | null; }>): Promise<void> {
+  if (!_client) return;
+  try {
+    await ensureCryptoCacheTable();
+    const q = `INSERT INTO crypto_cache (id, data, price, market_cap, volume24h, change24h, change7d, change30d, image, updated_at) VALUES `;
+    const parts: string[] = [];
+    const vals: any[] = [];
+    let idx = 1;
+    for (const row of rows) {
+      parts.push(`($${idx++}, $${idx++}::jsonb, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, $${idx++}, now())`);
+      vals.push(row.id, JSON.stringify(row.data), String(row.price), String(row.marketCap), String(row.volume24h), String(row.change24h), row.change7d != null ? String(row.change7d) : null, row.change30d != null ? String(row.change30d) : null, row.image || null);
+    }
+    const sql = q + parts.join(",") + ` ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data, price = EXCLUDED.price, market_cap = EXCLUDED.market_cap, volume24h = EXCLUDED.volume24h, change24h = EXCLUDED.change24h, change7d = EXCLUDED.change7d, change30d = EXCLUDED.change30d, image = EXCLUDED.image, updated_at = now()`;
+    await _client.query(sql, vals);
+  } catch (e) {
+    console.warn("[Database] Failed to upsert crypto_cache rows:", e);
+  }
+}

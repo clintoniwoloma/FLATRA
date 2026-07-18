@@ -5,6 +5,7 @@
 
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { getCryptoCache, getCryptoCacheById, upsertCryptoCacheRows } from '../db';
 
 const execAsync = promisify(exec);
 
@@ -33,6 +34,29 @@ interface MarketData {
  */
 export async function getTopCryptos(limit: number = 10): Promise<CryptoPrice[]> {
   try {
+    // Try DB cache first
+    const cached = await getCryptoCache(limit);
+    if (cached && cached.length > 0) {
+      // If cache is fresh (updated within 60 seconds), return it
+      const newest = new Date(cached[0].updated_at).getTime();
+      if (Date.now() - newest < 60 * 1000) {
+        return cached.map((c) => ({
+          id: c.id,
+          symbol: (c.data?.symbol || "").toUpperCase(),
+          name: c.data?.name || c.id,
+          price: Number(c.price),
+          marketCap: Number(c.market_cap),
+          volume24h: Number(c.volume24h),
+          change24h: Number(c.change24h),
+          change7d: c.change7d != null ? Number(c.change7d) : 0,
+          change30d: c.change30d != null ? Number(c.change30d) : 0,
+          ath: c.data?.ath || 0,
+          atl: c.data?.atl || 0,
+          image: c.image || (c.data?.image || ''),
+        }));
+      }
+    }
+
     const query = `
       query {
         coins(order: market_cap_desc, per_page: ${limit}, page: 1, sparkline: true) {
@@ -90,6 +114,25 @@ export async function getTopCryptos(limit: number = 10): Promise<CryptoPrice[]> 
       image: coin.image?.large || '',
     })) || [];
 
+    // Persist to DB cache (best-effort)
+    try {
+      await upsertCryptoCacheRows(
+        cryptos.map((c) => ({
+          id: c.id,
+          data: c,
+          price: c.price,
+          marketCap: c.marketCap,
+          volume24h: c.volume24h,
+          change24h: c.change24h,
+          change7d: c.change7d,
+          change30d: c.change30d,
+          image: c.image,
+        }))
+      );
+    } catch (e) {
+      console.warn('[Coingecko] Failed to persist crypto cache:', e);
+    }
+
     return cryptos;
   } catch (error) {
     console.error('Error fetching CoinGecko data:', error);
@@ -103,6 +146,28 @@ export async function getTopCryptos(limit: number = 10): Promise<CryptoPrice[]> 
  */
 export async function getCryptoPrice(cryptoId: string): Promise<CryptoPrice | null> {
   try {
+    // Try DB cache first
+    const cached = await getCryptoCacheById(cryptoId);
+    if (cached) {
+      const updated = new Date(cached.updated_at).getTime();
+      if (Date.now() - updated < 60 * 1000) {
+        return {
+          id: cached.id,
+          symbol: (cached.data?.symbol || "").toUpperCase(),
+          name: cached.data?.name || cached.id,
+          price: Number(cached.price),
+          marketCap: Number(cached.market_cap),
+          volume24h: Number(cached.volume24h),
+          change24h: Number(cached.change24h),
+          change7d: cached.change7d != null ? Number(cached.change7d) : 0,
+          change30d: cached.change30d != null ? Number(cached.change30d) : 0,
+          ath: cached.data?.ath || 0,
+          atl: cached.data?.atl || 0,
+          image: cached.image || (cached.data?.image || ''),
+        };
+      }
+    }
+
     const query = `
       query {
         coin(id: "${cryptoId}") {
