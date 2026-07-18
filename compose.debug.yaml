@@ -1,0 +1,6 @@
+services:
+  flatra:
+    image: flatra
+    build:
+      context: .
+      dockerfile: ./Dockerfile
